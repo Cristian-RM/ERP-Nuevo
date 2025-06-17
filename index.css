@@ -301,3 +301,63 @@ body {
     border-top: 1px solid #e2e8f0;
     font-size: 0.9rem;
 }
+.cost-summary {
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.cost-total-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.cost-label {
+    font-weight: bold;
+    color: #4a5568;
+    font-size: 1.1rem;
+}
+
+.cost-value {
+    font-weight: bold;
+    color: #38a169;
+    font-size: 1.3rem;
+}
+
+.cost-toggle-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.cost-toggle-btn:hover {
+    background: #5a67d8;
+    transform: translateY(-1px);
+}
+
+.cost-details {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #e2e8f0;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 500px;
+    }
+}
