@@ -1267,3 +1267,7 @@ function generateCostDetails(type) {
 
     return html;
 }
+
+function openEditor() {
+    window.open('editor.html', '_blank');
+}

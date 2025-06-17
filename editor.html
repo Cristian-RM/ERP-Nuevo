@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Configuración - Las Catalinas Stack</title>
+    <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Editor de Configuración</h1>
+            <p>Edita categorías y componentes de forma visual</p>
+            <div class="header-actions">
+                <a href="index.html" class="btn btn-secondary">🔙 Volver al Stack Builder</a>
+                <button class="btn btn-primary" onclick="saveAll()">💾 Guardar Todo</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Panel de Categorías -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>🏷️ Categorías</h2>
+                    <div class="panel-actions">
+                        <button class="btn btn-success" onclick="addCategory()">➕ Agregar</button>
+                        <button class="btn btn-secondary" onclick="importCategories()">📥 Importar</button>
+                        <button class="btn btn-secondary" onclick="exportCategories()">📤 Exportar</button>
+                    </div>
+                </div>
+                <div class="panel-content" id="categories-container">
+                    <!-- Se genera dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Panel de Componentes -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>🔧 Componentes</h2>
+                    <div class="panel-actions">
+                        <button class="btn btn-success" onclick="addComponent()">➕ Agregar</button>
+                        <button class="btn btn-secondary" onclick="importComponents()">📥 Importar</button>
+                        <button class="btn btn-secondary" onclick="exportComponents()">📤 Exportar</button>
+                    </div>
+                </div>
+                <div class="panel-content" id="components-container">
+                    <!-- Se genera dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar categoría -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="category-modal-title">Editar Categoría</h3>
+                <button class="close-btn" onclick="closeCategoryModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="category-key">Clave (ID):</label>
+                    <input type="text" id="category-key" placeholder="ej: erp, crm, pms">
+                </div>
+                <div class="form-group">
+                    <label for="category-name">Nombre:</label>
+                    <input type="text" id="category-name" placeholder="ej: ERP / Contabilidad">
+                </div>
+                <div class="form-group">
+                    <label for="category-emoji">Emoji:</label>
+                    <input type="text" id="category-emoji" placeholder="ej: 💼">
+                </div>
+                <div class="form-group">
+                    <label for="category-placeholder">Placeholder:</label>
+                    <input type="text" id="category-placeholder" placeholder="ej: Arrastra aquí tu ERP">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCategoryModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveCategoryModal()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar componente -->
+    <div id="component-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="component-modal-title">Editar Componente</h3>
+                <button class="close-btn" onclick="closeComponentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="component-key">Clave (ID):</label>
+                        <input type="text" id="component-key" placeholder="ej: odoo, dynamics">
+                    </div>
+                    <div class="form-group">
+                        <label for="component-name">Nombre:</label>
+                        <input type="text" id="component-name" placeholder="ej: Microsoft Dynamics 365">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="component-covers">Categorías que cubre:</label>
+                    <div id="component-covers" class="checkbox-group">
+                        <!-- Se genera dinámicamente -->
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4>💰 Precios</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="monthly-license">Licencia Mensual ($):</label>
+                            <input type="number" id="monthly-license" placeholder="2500">
+                        </div>
+                        <div class="form-group">
+                            <label for="annual-license">Licencia Anual ($):</label>
+                            <input type="number" id="annual-license" placeholder="30000">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="implementation">Implementación ($):</label>
+                            <input type="number" id="implementation" placeholder="15000">
+                        </div>
+                        <div class="form-group">
+                            <label for="migration">Migración ($):</label>
+                            <input type="number" id="migration" placeholder="8000">
+                        </div>
+                        <div class="form-group">
+                            <label for="training">Training ($):</label>
+                            <input type="number" id="training" placeholder="5000">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4>📊 Estadísticas (1-10)</h4>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <label for="stat-customization">Personalización:</label>
+                            <input type="range" id="stat-customization" min="1" max="10" value="5">
+                            <span class="stat-value">5</span>
+                        </div>
+                        <div class="stat-item">
+                            <label for="stat-cost-efficiency">Costo-Eficiencia:</label>
+                            <input type="range" id="stat-cost-efficiency" min="1" max="10" value="5">
+                            <span class="stat-value">5</span>
+                        </div>
+                        <div class="stat-item">
+                            <label for="stat-productivity">Productividad:</label>
+                            <input type="range" id="stat-productivity" min="1" max="10" value="5">
+                            <span class="stat-value">5</span>
+                        </div>
+                        <div class="stat-item">
+                            <label for="stat-ai-ready">IA Ready:</label>
+                            <input type="range" id="stat-ai-ready" min="1" max="10" value="5">
+                            <span class="stat-value">5</span>
+                        </div>
+                        <div class="stat-item">
+                            <label for="stat-analytics">Analytics:</label>
+                            <input type="range" id="stat-analytics" min="1" max="10" value="5">
+                            <span class="stat-value">5</span>
+                        </div>
+                        <div class="stat-item">
+                            <label for="stat-automation">Automatización:</label>
+                            <input type="range" id="stat-automation" min="1" max="10" value="5">
+                            <span class="stat-value">5</span>
+                        </div>
+                        <div class="stat-item">
+                            <label for="stat-implementation-ease">Fácil Implementar:</label>
+                            <input type="range" id="stat-implementation-ease" min="1" max="10" value="5">
+                            <span class="stat-value">5</span>
+                        </div>
+                        <div class="stat-item">
+                            <label for="stat-market-reliability">Confiabilidad:</label>
+                            <input type="range" id="stat-market-reliability" min="1" max="10" value="5">
+                            <span class="stat-value">5</span>
+                        </div>
+                        <div class="stat-item">
+                            <label for="stat-support-quality">Soporte:</label>
+                            <input type="range" id="stat-support-quality" min="1" max="10" value="5">
+                            <span class="stat-value">5</span>
+                        </div>
+                        <div class="stat-item">
+                            <label for="stat-integration">Integración:</label>
+                            <input type="range" id="stat-integration" min="1" max="10" value="5">
+                            <span class="stat-value">5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4>✅ Pros y Contras</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="component-pros">Pros (separar con comas):</label>
+                            <textarea id="component-pros" placeholder="Fácil de usar, Integración excelente, Buen soporte"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="component-cons">Contras (separar con comas):</label>
+                            <textarea id="component-cons" placeholder="Costoso, Curva de aprendizaje"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeComponentModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveComponentModal()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="editor.js"></script>
+</body>
+</html>
