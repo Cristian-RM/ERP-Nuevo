@@ -361,3 +361,35 @@ body {
         max-height: 500px;
     }
 }
+.actions-grouped {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.action-group {
+    display: flex;
+    gap: 8px;
+}
+
+.component-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #e2e8f0;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .actions-grouped {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .category-actions {
+        flex-direction: column;
+    }
+}

@@ -17,22 +17,46 @@
             <div class="components-panel">
                 <h3>🔧 Componentes Disponibles</h3>
                 <div id="components-list"></div>
+
+                <!-- Botones de categorías abajo -->
+           
+                <div class="component-actions">
+                        <button class="btn btn-secondary"
+                            onclick="importData()">📥Importar Componentes</button>
+                        <button class="btn btn-secondary"
+                            onclick="exportData()">📤 Exportar Componentes</button>
+                    </div>
             </div>
 
             <div class="workspace">
-                <div class="stack-builder" id="stack-builder">
-                    <!-- Se genera dinámicamente -->
+                <div class="actions-grouped">
+                    <!-- Izquierda: Exportar reportes -->
+                    <div class="action-group">
+                        <button class="btn btn-primary"
+                            onclick="exportStackToExcel()">📊 Excel</button>
+                        <button class="btn btn-primary"
+                            onclick="exportStackToPDF()">📄 PDF</button>
+                    </div>
+
+                    <!-- Centro: Configuración -->
+                    <div class="action-group">
+                        <button class="btn btn-secondary"
+                            onclick="openEditor()">⚙️ Configurar</button>
+                        <button class="btn btn-secondary"
+                            onclick="clearStack()">🗑️ Limpiar</button>
+                    </div>
+
+                    <!-- Derecha: Componentes -->
+                         <div class="action-group">
+                    <button class="btn btn-secondary"
+                        onclick="importCategories()">📥Importar Categorías</button>
+                    <button class="btn btn-secondary"
+                        onclick="exportCategories()">📤Exportar Categorías</button>
+                </div>
                 </div>
 
-                <div class="actions">
-                    <button class="btn btn-primary" onclick="exportStackToExcel()">📊 Exportar Excel</button>
-                    <button class="btn btn-primary" onclick="exportStackToPDF()">📄 Exportar PDF</button>
-                    <button class="btn btn-secondary" onclick="openEditor()">⚙️ Configurar Datos</button>
-                    <button class="btn btn-secondary" onclick="clearStack()">🗑️ Limpiar Todo</button>
-                    <button class="btn btn-secondary" onclick="importData()">📥 Importar Datos</button>
-                    <button class="btn btn-secondary" onclick="exportData()">📤 Exportar Datos</button>
-                    <button class="btn btn-secondary" onclick="importCategories()">📥 Importar Categorías</button>
-                    <button class="btn btn-secondary" onclick="exportCategories()">📤 Exportar Categorías</button>
+                <div class="stack-builder" id="stack-builder">
+                    <!-- Se genera dinámicamente -->
                 </div>
             </div>
 
@@ -59,8 +83,10 @@
                 </div>
             </div>
         </div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
         <script src="index.js"></script>
         <script>
         // Inicialización cuando el DOM está listo

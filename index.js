@@ -39,132 +39,218 @@ let categoriesConfig = {
 
 // Datos de componentes (JSON editable)
 let componentsData = {
-    "odoo": {
-        name: "Odoo",
-        covers: ["erp", "field", "bi"],
-        pricing: {
-            monthly_license: 2500,
-            annual_license: 30000,
-            implementation: 15000,
-            migration: 8000,
-            training: 5000
-        },
-        stats: {
-            integration: 9,
-            usability: 7,
-            scalability: 8,
-            support: 6,
-            customization: 9,
-            learning_curve: 4
-        },
-        pros: ["Altamente integrado", "Open source", "Modular"],
-        cons: ["Curva de aprendizaje", "Requiere personalización"]
+  "odoo": {
+    "name": "Odoo",
+    "covers": [
+      "erp",
+      "field",
+      "bi"
+    ],
+    "pricing": {
+      "monthly_license": 2500,
+      "annual_license": 30000,
+      "implementation": 15000,
+      "migration": 8000,
+      "training": 5000
     },
-    "hubspot": {
-        name: "HubSpot",
-        covers: ["crm"],
-        pricing: {
-            monthly_license: 1400,
-            annual_license: 17000,
-            implementation: 5000,
-            migration: 3000,
-            training: 2000
-        },
-        stats: {
-            integration: 8,
-            usability: 9,
-            scalability: 7,
-            support: 8,
-            customization: 6,
-            learning_curve: 8
-        },
-        pros: ["Fácil de usar", "Excelente marketing", "Integraciones"],
-        cons: ["Costoso en niveles altos", "Limitado en personalización"]
+    "stats": {
+      "customization": 9,
+      "cost_efficiency": 8,
+      "productivity": 8,
+      "ai_ready": 6,
+      "analytics": 8,
+      "automation": 9,
+      "implementation_ease": 4,
+      "market_reliability": 8,
+      "support_quality": 6,
+      "integration": 9
     },
-    "dynamics": {
-        name: "Microsoft Dynamics 365",
-        covers: ["field", "crm"],
-        pricing: {
-            monthly_license: 5800,
-            annual_license: 70000,
-            implementation: 25000,
-            migration: 15000,
-            training: 10000
-        },
-        stats: {
-            integration: 8,
-            usability: 6,
-            scalability: 9,
-            support: 8,
-            customization: 10,
-            learning_curve: 3
-        },
-        pros: ["Altamente personalizable", "Integración Microsoft", "Robusto"],
-        cons: ["Complejo", "Costoso", "Curva de aprendizaje alta"]
+    "pros": [
+      "Altamente integrado",
+      "Open source",
+      "Modular"
+    ],
+    "cons": [
+      "Curva de aprendizaje",
+      "Requiere personalización"
+    ]
+  },
+  "hubspot": {
+    "name": "HubSpot",
+    "covers": [
+      "crm"
+    ],
+    "pricing": {
+      "monthly_license": 1400,
+      "annual_license": 17000,
+      "implementation": 5000,
+      "migration": 3000,
+      "training": 2000
     },
-    "mews": {
-        name: "Mews PMS",
-        covers: ["pms"],
-        pricing: {
-            monthly_license: 800,
-            annual_license: 9600,
-            implementation: 8000,
-            migration: 12000,
-            training: 4000
-        },
-        stats: {
-            integration: 8,
-            usability: 9,
-            scalability: 7,
-            support: 7,
-            customization: 5,
-            learning_curve: 7
-        },
-        pros: ["Moderno", "API robusta", "Fácil uso"],
-        cons: ["Joven en el mercado", "Limitado en personalización"]
+    "stats": {
+      "customization": 6,
+      "cost_efficiency": 6,
+      "productivity": 9,
+      "ai_ready": 8,
+      "analytics": 8,
+      "automation": 7,
+      "implementation_ease": 8,
+      "market_reliability": 9,
+      "support_quality": 8,
+      "integration": 8
     },
-    "bamboohr": {
-        name: "BambooHR",
-        covers: ["hr"],
-        pricing: {
-            monthly_license: 600,
-            annual_license: 7200,
-            implementation: 3000,
-            migration: 2000,
-            training: 1500
-        },
-        stats: {
-            integration: 6,
-            usability: 9,
-            scalability: 6,
-            support: 8,
-            customization: 5,
-            learning_curve: 9
-        },
-        pros: ["Muy fácil de usar", "Interfaz moderna", "Buen soporte"],
-        cons: ["Limitado para empresas grandes", "Pocas integraciones"]
+    "pros": [
+      "Fácil de usar",
+      "Excelente marketing",
+      "Integraciones"
+    ],
+    "cons": [
+      "Costoso en niveles altos",
+      "Limitado en personalización"
+    ]
+  },
+  "dynamics": {
+    "name": "Microsoft Dynamics 365",
+    "covers": [
+      "field",
+      "wr",
+      "crm",
+      "bi",
+      "pr"
+    ],
+    "pricing": {
+      "monthly_license": 5800,
+      "annual_license": 70000,
+      "implementation": 25000,
+      "migration": 15000,
+      "training": 10000
     },
-    "powerbi": {
-        name: "Power BI",
-        covers: ["bi"],
-        pricing: {
-            monthly_license: 300,
-            annual_license: 3600,
-            implementation: 5000,
-            migration: 2000,
-            training: 3000
-        },
-        stats: {
-            integration: 9,
-            usability: 7,
-            scalability: 8,
-            support: 7,
-            customization: 8,
-            learning_curve: 6
-        },
-        pros: ["Integración Microsoft", "Potente", "Costo razonable"],
-        cons: ["Requiere conocimiento técnico", "Limitado fuera de Microsoft"]
-    }
+    "stats": {
+      "customization": 10,
+      "cost_efficiency": 4,
+      "productivity": 7,
+      "ai_ready": 8,
+      "analytics": 7,
+      "automation": 8,
+      "implementation_ease": 3,
+      "market_reliability": 9,
+      "support_quality": 8,
+      "integration": 8
+    },
+    "pros": [
+      "Altamente personalizable",
+      "Integración Microsoft",
+      "Robusto"
+    ],
+    "cons": [
+      "Complejo",
+      "Costoso",
+      "Curva de aprendizaje alta"
+    ]
+  },
+  "mews": {
+    "name": "Mews PMS",
+    "covers": [
+      "pms"
+    ],
+    "pricing": {
+      "monthly_license": 800,
+      "annual_license": 9600,
+      "implementation": 8000,
+      "migration": 12000,
+      "training": 4000
+    },
+    "stats": {
+      "customization": 5,
+      "cost_efficiency": 7,
+      "productivity": 8,
+      "ai_ready": 6,
+      "analytics": 6,
+      "automation": 6,
+      "implementation_ease": 7,
+      "market_reliability": 7,
+      "support_quality": 7,
+      "integration": 8
+    },
+    "pros": [
+      "Moderno",
+      "API robusta",
+      "Fácil uso"
+    ],
+    "cons": [
+      "Joven en el mercado",
+      "Limitado en personalización"
+    ]
+  },
+  "bamboohr": {
+    "name": "BambooHR",
+    "covers": [
+      "hr",
+      "pms"
+    ],
+    "pricing": {
+      "monthly_license": 600,
+      "annual_license": 7200,
+      "implementation": 3000,
+      "migration": 2000,
+      "training": 1500
+    },
+    "stats": {
+      "customization": 5,
+      "cost_efficiency": 8,
+      "productivity": 8,
+      "ai_ready": 4,
+      "analytics": 5,
+      "automation": 6,
+      "implementation_ease": 9,
+      "market_reliability": 8,
+      "support_quality": 8,
+      "integration": 6
+    },
+    "pros": [
+      "Muy fácil de usar",
+      "Interfaz moderna",
+      "Buen soporte"
+    ],
+    "cons": [
+      "Limitado para empresas grandes",
+      "Pocas integraciones"
+    ]
+  },
+  "powerbi": {
+    "name": "Power BI",
+    "covers": [
+      "bi"
+    ],
+    "pricing": {
+      "monthly_license": 300,
+      "annual_license": 3600,
+      "implementation": 5000,
+      "migration": 2000,
+      "training": 3000
+    },
+    "stats": {
+      "customization": 8,
+      "cost_efficiency": 9,
+      "productivity": 8,
+      "ai_ready": 7,
+      "analytics": 10,
+      "automation": 7,
+      "implementation_ease": 6,
+      "market_reliability": 9,
+      "support_quality": 7,
+      "integration": 9
+    },
+    "pros": [
+      "Integración Microsoft",
+      "Potente",
+      "Costo razonable"
+    ],
+    "cons": [
+      "Requiere conocimiento técnico",
+      "Limitado fuera de Microsoft"
+    ]
+  }
 };
 
 let currentStack = {
