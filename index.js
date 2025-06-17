@@ -166,12 +166,20 @@ let componentsData = {
     }
 };
 
-let currentStack = {};
+let currentStack = {
+    erp: [],
+    pms: [],
+    crm: [],
+    field: [],
+    hr: [],
+    bi: []
+};
 
 // Inicializar la aplicación
 function init() {
     console.log('🚀 Iniciando Stack Builder...');
-    loadFromStorage(); // ← Nueva línea
+    loadFromStorage();
+    initializeStack(); // ← Nueva línea
     renderCategories();
     renderComponents();
     updateCosts();
@@ -289,34 +297,134 @@ function handleDrop(e) {
 
 function addComponentToStack(componentKey, targetCategory) {
     const component = componentsData[componentKey];
-
-    // Si el componente cubre múltiples categorías, agregarlo a todas
+    
+    // Verificar si el componente ya existe en alguna categoría
+    const existingCategories = [];
     component.covers.forEach(category => {
-        if (currentStack[category]) {
-            removeFromSlot(category);
+        if (currentStack[category] && currentStack[category].includes(componentKey)) {
+            existingCategories.push(category);
         }
-        currentStack[category] = componentKey;
-        updateSlot(category, component);
     });
-
+    
+    if (existingCategories.length > 0) {
+        alert(`${component.name} ya está en: ${existingCategories.map(c => getCategoryName(c)).join(', ')}`);
+        return;
+    }
+    
+    // Detectar conflictos (componentes multi-categoría vs otros multi-categoría)
+    const conflicts = [];
+    component.covers.forEach(category => {
+        const existing = currentStack[category] || [];
+        existing.forEach(existingKey => {
+            const existingComponent = componentsData[existingKey];
+            if (existingComponent.covers.length > 1) {
+                conflicts.push({
+                    category: category,
+                    existing: existingKey,
+                    existingName: existingComponent.name
+                });
+            }
+        });
+    });
+    
+    // Si hay conflictos multi-categoría, mostrar opciones
+    if (conflicts.length > 0) {
+        const conflictMsg = conflicts.map(c => 
+            `• ${getCategoryName(c.category)}: ${c.existingName}`
+        ).join('\n');
+        
+        const message = `${component.name} tiene conflictos con sistemas multi-categoría:\n\n${conflictMsg}\n\n¿Qué querés hacer?`;
+        
+        const options = [
+            'Reemplazar todo (eliminar sistemas existentes)',
+            'Solo reemplazar en categorías con conflicto', 
+            'Que convivan ambos (agregar junto a los existentes)',
+            'Cancelar'
+        ];
+        
+        let choice = '';
+        while (!choice) {
+            const input = prompt(
+                `${message}\n\nEscribí el número de tu opción:\n` +
+                `1. ${options[0]}\n` +
+                `2. ${options[1]}\n` +
+                `3. ${options[2]}\n` +
+                `4. ${options[3]}`
+            );
+            
+            if (input === null || input === '4') return; // Cancelar
+            
+            if (['1', '2', '3'].includes(input)) {
+                choice = input;
+            } else {
+                alert('Por favor, escribí 1, 2, 3 o 4');
+            }
+        }
+        
+        if (choice === '1') {
+            // Reemplazar todo - remover componentes conflictivos completamente
+            conflicts.forEach(conflict => {
+                removeComponentCompletely(conflict.existing);
+            });
+        } else if (choice === '2') {
+            // Solo reemplazar en categorías con conflicto
+            const conflictCategories = [...new Set(conflicts.map(c => c.category))];
+            conflictCategories.forEach(category => {
+                currentStack[category] = currentStack[category].filter(key => {
+                    const comp = componentsData[key];
+                    return comp.covers.length === 1; // Mantener solo componentes de una sola categoría
+                });
+            });
+        }
+        // Si choice === '3', no hacer nada (que convivan)
+    }
+    
+    // Agregar a todas las categorías que cubre
+    component.covers.forEach(category => {
+        if (!currentStack[category]) currentStack[category] = [];
+        currentStack[category].push(componentKey);
+        updateSlot(category);
+    });
+    
     updateCosts();
-    updateRadarChart();
 }
 
-function updateSlot(category, component) {
+function updateSlot(category) {
     const slot = document.querySelector(`[data-category="${category}"]`);
     if (!slot) return;
     
-    const originalLabel = slot.querySelector('.slot-label').textContent;
-    slot.classList.add('filled');
-    slot.innerHTML = `
-        <div class="slot-label">${originalLabel}</div>
-        <div class="slot-content">
-            <strong>${component.name}</strong><br>
-            <small>$${component.pricing.monthly_license.toLocaleString()}/mes</small>
-        </div>
-        <button class="remove-btn" onclick="removeFromSlot('${category}')">&times;</button>
-    `;
+    const categoryConfig = categoriesConfig[category];
+    const components = currentStack[category] || [];
+    
+    if (components.length === 0) {
+        // Slot vacío
+        slot.classList.remove('filled');
+        slot.innerHTML = `
+            <div class="slot-label">${categoryConfig.emoji} ${categoryConfig.name}</div>
+            <div class="slot-content">${categoryConfig.placeholder}</div>
+        `;
+    } else {
+        // Slot con componentes
+        slot.classList.add('filled');
+        const totalCost = components.reduce((sum, key) => 
+            sum + componentsData[key].pricing.monthly_license, 0);
+        
+        const componentsList = components.map(key => {
+            const comp = componentsData[key];
+            return `<div class="component-in-slot">
+                <strong>${comp.name}</strong> - $${comp.pricing.monthly_license.toLocaleString()}/mes
+                <button class="remove-component-btn" onclick="removeFromCategory('${key}', '${category}')">&times;</button>
+            </div>`;
+        }).join('');
+        
+        slot.innerHTML = `
+            <div class="slot-label">${categoryConfig.emoji} ${categoryConfig.name}</div>
+            <div class="slot-content">
+                ${componentsList}
+                <div class="slot-total">Total: $${totalCost.toLocaleString()}/mes</div>
+            </div>
+        `;
+    }
 }
 
 function removeFromSlot(category) {
@@ -352,32 +460,62 @@ function updateCosts() {
     let totalMonthly = 0;
     let totalAnnual = 0;
 
-    const usedComponents = new Set(Object.values(currentStack));
+    // Obtener todos los componentes únicos en uso
+    const allComponents = new Set();
+    Object.values(currentStack).forEach(categoryArray => {
+        categoryArray.forEach(componentKey => allComponents.add(componentKey));
+    });
 
     monthlyContainer.innerHTML = '';
     annualContainer.innerHTML = '';
 
-    usedComponents.forEach(componentKey => {
-        const component = componentsData[componentKey];
-        const monthly = component.pricing.monthly_license;
-        const annual = component.pricing.annual_license;
+    // Mostrar costos por categoría
+    Object.keys(currentStack).forEach(category => {
+        const components = currentStack[category];
+        if (components.length === 0) return;
 
-        totalMonthly += monthly;
-        totalAnnual += annual;
+        const categoryMonthly = components.reduce((sum, key) => 
+            sum + componentsData[key].pricing.monthly_license, 0);
+        const categoryAnnual = components.reduce((sum, key) => 
+            sum + componentsData[key].pricing.annual_license, 0);
 
+        // Solo agregar al total si no está duplicado
+        const categoryComponents = components.map(key => componentsData[key].name).join(', ');
+        
         monthlyContainer.innerHTML += `
-            <div class="cost-item">
-                <span>${component.name}</span>
-                <span>$${monthly.toLocaleString()}</span>
+            <div class="cost-category">
+                <div class="cost-category-header">${getCategoryName(category)}</div>
+                ${components.map(key => {
+                    const comp = componentsData[key];
+                    return `<div class="cost-item">
+                        <span>${comp.name}</span>
+                        <span>$${comp.pricing.monthly_license.toLocaleString()}</span>
+                    </div>`;
+                }).join('')}
+                <div class="cost-category-total">Subtotal: $${categoryMonthly.toLocaleString()}</div>
             </div>
         `;
 
         annualContainer.innerHTML += `
-            <div class="cost-item">
-                <span>${component.name}</span>
-                <span>$${annual.toLocaleString()}</span>
+            <div class="cost-category">
+                <div class="cost-category-header">${getCategoryName(category)}</div>
+                ${components.map(key => {
+                    const comp = componentsData[key];
+                    return `<div class="cost-item">
+                        <span>${comp.name}</span>
+                        <span>$${comp.pricing.annual_license.toLocaleString()}</span>
+                    </div>`;
+                }).join('')}
+                <div class="cost-category-total">Subtotal: $${categoryAnnual.toLocaleString()}</div>
             </div>
         `;
+    });
+
+    // Calcular total único (sin duplicados)
+    allComponents.forEach(componentKey => {
+        const component = componentsData[componentKey];
+        totalMonthly += component.pricing.monthly_license;
+        totalAnnual += component.pricing.annual_license;
     });
 
     const totalMonthlyEl = document.getElementById('total-monthly');
@@ -512,27 +650,80 @@ function getSlotPlaceholder(category) {
     return categoriesConfig[category]?.placeholder || 'Arrastra componente aquí';
 }
 function exportStack() {
-    const usedComponents = new Set(Object.values(currentStack));
-    let report = 'RESUMEN DEL STACK TECNOLÓGICO - LAS CATALINAS\n\n';
-
-    report += 'COMPONENTES SELECCIONADOS:\n';
-    usedComponents.forEach(componentKey => {
-        const component = componentsData[componentKey];
-        report += `\n• ${component.name}\n`;
-        report += `  Cubre: ${component.covers.map(c => getCategoryName(c)).join(', ')}\n`;
-        report += `  Costo mensual: $${component.pricing.monthly_license.toLocaleString()}\n`;
-        report += `  Pros: ${component.pros.join(', ')}\n`;
-        report += `  Contras: ${component.cons.join(', ')}\n`;
+    // Obtener todos los componentes únicos en uso
+    const allComponents = new Set();
+    Object.values(currentStack).forEach(categoryArray => {
+        if (Array.isArray(categoryArray)) {
+            categoryArray.forEach(componentKey => allComponents.add(componentKey));
+        }
     });
 
-    const totalMonthly = Array.from(usedComponents).reduce((sum, key) =>
-        sum + componentsData[key].pricing.monthly_license, 0);
-    const totalAnnual = Array.from(usedComponents).reduce((sum, key) =>
-        sum + componentsData[key].pricing.annual_license, 0);
+    if (allComponents.size === 0) {
+        alert('No hay componentes seleccionados para exportar');
+        return;
+    }
 
-    report += `\nCOSTOS TOTALES:\n`;
+    let report = 'RESUMEN DEL STACK TECNOLÓGICO - LAS CATALINAS\n\n';
+    
+    // Mostrar por categorías
+    report += 'COMPONENTES POR CATEGORÍA:\n';
+    Object.keys(currentStack).forEach(category => {
+        const components = currentStack[category] || [];
+        if (components.length > 0) {
+            report += `\n${getCategoryName(category).toUpperCase()}:\n`;
+            components.forEach(componentKey => {
+                const component = componentsData[componentKey];
+                if (component) {
+                    report += `  • ${component.name} - $${component.pricing.monthly_license.toLocaleString()}/mes\n`;
+                }
+            });
+            
+            const categoryTotal = components.reduce((sum, key) => 
+                sum + (componentsData[key]?.pricing.monthly_license || 0), 0);
+            report += `  Subtotal categoría: $${categoryTotal.toLocaleString()}/mes\n`;
+        }
+    });
+
+    // Resumen de componentes únicos
+    report += '\n\nRESUMEN DE COMPONENTES ÚNICOS:\n';
+    allComponents.forEach(componentKey => {
+        const component = componentsData[componentKey];
+        if (component) {
+            report += `\n• ${component.name}\n`;
+            report += `  Cubre: ${component.covers.map(c => getCategoryName(c)).join(', ')}\n`;
+            report += `  Costo mensual: $${component.pricing.monthly_license.toLocaleString()}\n`;
+            report += `  Costo anual: $${component.pricing.annual_license.toLocaleString()}\n`;
+            report += `  Pros: ${component.pros.join(', ')}\n`;
+            report += `  Contras: ${component.cons.join(', ')}\n`;
+        }
+    });
+
+    // Calcular totales únicos
+    const totalMonthly = Array.from(allComponents).reduce((sum, key) => 
+        sum + (componentsData[key]?.pricing.monthly_license || 0), 0);
+    const totalAnnual = Array.from(allComponents).reduce((sum, key) => 
+        sum + (componentsData[key]?.pricing.annual_license || 0), 0);
+
+    report += `\nCOSTOS TOTALES (SIN DUPLICADOS):\n`;
     report += `Mensual: $${totalMonthly.toLocaleString()}\n`;
     report += `Anual: $${totalAnnual.toLocaleString()}\n`;
+
+    // Detectar duplicados por categoría
+    report += `\nANÁLISIS DE DUPLICADOS:\n`;
+    Object.keys(currentStack).forEach(category => {
+        const components = currentStack[category] || [];
+        if (components.length > 1) {
+            const categoryTotal = components.reduce((sum, key) => 
+                sum + (componentsData[key]?.pricing.monthly_license || 0), 0);
+            report += `• ${getCategoryName(category)}: ${components.length} sistemas - $${categoryTotal.toLocaleString()}/mes\n`;
+            components.forEach(key => {
+                const comp = componentsData[key];
+                if (comp) {
+                    report += `  - ${comp.name}\n`;
+                }
+            });
+        }
+    });
 
     const blob = new Blob([report], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -540,26 +731,20 @@ function exportStack() {
     a.href = url;
     a.download = 'stack-tecnologico-catalinas.txt';
     a.click();
+    URL.revokeObjectURL(url);
 }
 
 function clearStack() {
     if (confirm('¿Estás seguro de que querés limpiar todo el stack?')) {
-        currentStack = {};
-        document.querySelectorAll('.stack-slot').forEach(slot => {
-            slot.classList.remove('filled');
-            const categoryKey = slot.dataset.category;
-            const category = categoriesConfig[categoryKey];
-            if (category) {
-                slot.innerHTML = `
-                    <div class="slot-label">${category.emoji} ${category.name}</div>
-                    <div class="slot-content">${category.placeholder}</div>
-                `;
-            }
+        initializeStack(); // Reinicializar arrays vacíos
+        
+        Object.keys(categoriesConfig).forEach(category => {
+            updateSlot(category);
         });
+        
         updateCosts();
     }
 }
-
 
 
 function importData() {
@@ -690,4 +875,315 @@ function loadFromStorage() {
     } catch (e) {
         console.warn('⚠️ Error cargando desde localStorage:', e.message);
     }
+}
+
+function initializeStack() {
+    currentStack = {};
+    Object.keys(categoriesConfig).forEach(category => {
+        currentStack[category] = [];
+    });
+}
+
+function removeComponentCompletely(componentKey) {
+    const component = componentsData[componentKey];
+    
+    component.covers.forEach(category => {
+        if (currentStack[category]) {
+            currentStack[category] = currentStack[category].filter(key => key !== componentKey);
+            updateSlot(category);
+        }
+    });
+}
+function removeFromCategory(componentKey, category) {
+    if (!currentStack[category]) return;
+    
+    // Remover solo de esta categoría
+    currentStack[category] = currentStack[category].filter(key => key !== componentKey);
+    
+    // Verificar si el componente sigue en otras categorías
+    const component = componentsData[componentKey];
+    const stillInUse = component.covers.some(cat => 
+        currentStack[cat] && currentStack[cat].includes(componentKey)
+    );
+    
+    // Si ya no está en ninguna categoría, preguntar si remover completamente
+    if (!stillInUse) {
+        const otherCategories = component.covers.filter(cat => cat !== category);
+        if (otherCategories.length > 0) {
+            const remove = confirm(
+                `${component.name} ya no está en ${getCategoryName(category)}.\n\n¿También remover de: ${otherCategories.map(c => getCategoryName(c)).join(', ')}?`
+            );
+            
+            if (remove) {
+                removeComponentCompletely(componentKey);
+            }
+        }
+    }
+    
+    updateSlot(category);
+    updateCosts();
+}
+
+function exportStackToExcel() {
+    // Verificar que hay componentes
+    const allComponents = new Set();
+    Object.values(currentStack).forEach(categoryArray => {
+        if (Array.isArray(categoryArray)) {
+            categoryArray.forEach(componentKey => allComponents.add(componentKey));
+        }
+    });
+
+    if (allComponents.size === 0) {
+        alert('No hay componentes seleccionados para exportar');
+        return;
+    }
+
+    // Crear workbook
+    const wb = XLSX.utils.book_new();
+
+    // Hoja 1: Resumen por categorías
+    const categoryData = [['Categoría', 'Componente', 'Costo Mensual', 'Costo Anual']];
+    
+    Object.keys(currentStack).forEach(category => {
+        const components = currentStack[category] || [];
+        if (components.length > 0) {
+            components.forEach(componentKey => {
+                const component = componentsData[componentKey];
+                if (component) {
+                    categoryData.push([
+                        getCategoryName(category),
+                        component.name,
+                        component.pricing.monthly_license,
+                        component.pricing.annual_license
+                    ]);
+                }
+            });
+        }
+    });
+
+    const ws1 = XLSX.utils.aoa_to_sheet(categoryData);
+    XLSX.utils.book_append_sheet(wb, ws1, "Por Categorías");
+
+    // Hoja 2: Componentes únicos detallados
+    const componentData = [['Componente', 'Categorías que Cubre', 'Costo Mensual', 'Costo Anual', 'Implementación', 'Migración', 'Training', 'Pros', 'Contras']];
+    
+    allComponents.forEach(componentKey => {
+        const component = componentsData[componentKey];
+        if (component) {
+            componentData.push([
+                component.name,
+                component.covers.map(c => getCategoryName(c)).join(', '),
+                component.pricing.monthly_license,
+                component.pricing.annual_license,
+                component.pricing.implementation,
+                component.pricing.migration,
+                component.pricing.training,
+                component.pros.join(', '),
+                component.cons.join(', ')
+            ]);
+        }
+    });
+
+    const ws2 = XLSX.utils.aoa_to_sheet(componentData);
+    XLSX.utils.book_append_sheet(wb, ws2, "Detalle Componentes");
+
+    // Hoja 3: Análisis de costos
+    const totalMonthly = Array.from(allComponents).reduce((sum, key) => 
+        sum + (componentsData[key]?.pricing.monthly_license || 0), 0);
+    const totalAnnual = Array.from(allComponents).reduce((sum, key) => 
+        sum + (componentsData[key]?.pricing.annual_license || 0), 0);
+    const totalImplementation = Array.from(allComponents).reduce((sum, key) => 
+        sum + (componentsData[key]?.pricing.implementation || 0), 0);
+
+    const costData = [
+        ['Concepto', 'Valor'],
+        ['Total Mensual', totalMonthly],
+        ['Total Anual', totalAnnual],
+        ['Costo Implementación', totalImplementation],
+        ['', ''],
+        ['Análisis por Categoría', ''],
+        ['Categoría', 'Cantidad Sistemas', 'Costo Mensual']
+    ];
+
+    Object.keys(currentStack).forEach(category => {
+        const components = currentStack[category] || [];
+        if (components.length > 0) {
+            const categoryTotal = components.reduce((sum, key) => 
+                sum + (componentsData[key]?.pricing.monthly_license || 0), 0);
+            costData.push([
+                getCategoryName(category),
+                components.length,
+                categoryTotal
+            ]);
+        }
+    });
+
+    const ws3 = XLSX.utils.aoa_to_sheet(costData);
+    XLSX.utils.book_append_sheet(wb, ws3, "Análisis Costos");
+
+    // Exportar archivo
+    const fileName = `stack-tecnologico-catalinas-${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+}
+
+function exportStackToPDF() {
+    // Verificar que hay componentes
+    const allComponents = new Set();
+    Object.values(currentStack).forEach(categoryArray => {
+        if (Array.isArray(categoryArray)) {
+            categoryArray.forEach(componentKey => allComponents.add(componentKey));
+        }
+    });
+
+    if (allComponents.size === 0) {
+        alert('No hay componentes seleccionados para exportar');
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    let yPosition = 20;
+    const lineHeight = 7;
+    const pageHeight = doc.internal.pageSize.height - 20;
+
+    // Función para agregar nueva página si es necesario
+    function checkNewPage() {
+        if (yPosition > pageHeight) {
+            doc.addPage();
+            yPosition = 20;
+        }
+    }
+
+    // Título
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text('STACK TECNOLÓGICO - LAS CATALINAS', 20, yPosition);
+    yPosition += 15;
+
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, yPosition);
+    yPosition += 15;
+
+    // Resumen por categorías
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('COMPONENTES POR CATEGORÍA', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+
+    Object.keys(currentStack).forEach(category => {
+        const components = currentStack[category] || [];
+        if (components.length > 0) {
+            checkNewPage();
+            
+            // Nombre de categoría
+            doc.setFont(undefined, 'bold');
+            doc.text(`${getCategoryName(category)}:`, 20, yPosition);
+            yPosition += lineHeight;
+            
+            doc.setFont(undefined, 'normal');
+            
+            // Componentes de la categoría
+            components.forEach(componentKey => {
+                const component = componentsData[componentKey];
+                if (component) {
+                    checkNewPage();
+                    doc.text(`• ${component.name} - $${component.pricing.monthly_license.toLocaleString()}/mes`, 25, yPosition);
+                    yPosition += lineHeight;
+                }
+            });
+            
+            // Subtotal de categoría
+            const categoryTotal = components.reduce((sum, key) => 
+                sum + (componentsData[key]?.pricing.monthly_license || 0), 0);
+            doc.setFont(undefined, 'bold');
+            doc.text(`Subtotal: $${categoryTotal.toLocaleString()}/mes`, 25, yPosition);
+            yPosition += 10;
+            doc.setFont(undefined, 'normal');
+        }
+    });
+
+    checkNewPage();
+    yPosition += 5;
+
+    // Resumen de costos totales
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('RESUMEN DE COSTOS', 20, yPosition);
+    yPosition += 10;
+
+    const totalMonthly = Array.from(allComponents).reduce((sum, key) => 
+        sum + (componentsData[key]?.pricing.monthly_license || 0), 0);
+    const totalAnnual = Array.from(allComponents).reduce((sum, key) => 
+        sum + (componentsData[key]?.pricing.annual_license || 0), 0);
+    const totalImplementation = Array.from(allComponents).reduce((sum, key) => 
+        sum + (componentsData[key]?.pricing.implementation || 0), 0);
+
+    doc.setFontSize(12);
+    doc.text(`Total Mensual: $${totalMonthly.toLocaleString()}`, 20, yPosition);
+    yPosition += lineHeight;
+    doc.text(`Total Anual: $${totalAnnual.toLocaleString()}`, 20, yPosition);
+    yPosition += lineHeight;
+    doc.text(`Implementación: $${totalImplementation.toLocaleString()}`, 20, yPosition);
+    yPosition += 15;
+
+    // Detalle de componentes
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text('DETALLE DE COMPONENTES', 20, yPosition);
+    yPosition += 10;
+
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+
+    allComponents.forEach(componentKey => {
+        const component = componentsData[componentKey];
+        if (component) {
+            checkNewPage();
+            
+            // Nombre del componente
+            doc.setFont(undefined, 'bold');
+            doc.text(component.name, 20, yPosition);
+            yPosition += lineHeight;
+            
+            doc.setFont(undefined, 'normal');
+            
+            // Detalles
+            doc.text(`Cubre: ${component.covers.map(c => getCategoryName(c)).join(', ')}`, 25, yPosition);
+            yPosition += lineHeight;
+            doc.text(`Costo mensual: $${component.pricing.monthly_license.toLocaleString()}`, 25, yPosition);
+            yPosition += lineHeight;
+            doc.text(`Costo anual: $${component.pricing.annual_license.toLocaleString()}`, 25, yPosition);
+            yPosition += lineHeight;
+            
+            // Pros y contras (con wrap de texto)
+            const prosText = `Pros: ${component.pros.join(', ')}`;
+            const consText = `Contras: ${component.cons.join(', ')}`;
+            
+            const prosLines = doc.splitTextToSize(prosText, 170);
+            const consLines = doc.splitTextToSize(consText, 170);
+            
+            prosLines.forEach(line => {
+                checkNewPage();
+                doc.text(line, 25, yPosition);
+                yPosition += lineHeight;
+            });
+            
+            consLines.forEach(line => {
+                checkNewPage();
+                doc.text(line, 25, yPosition);
+                yPosition += lineHeight;
+            });
+            
+            yPosition += 5; // Espacio entre componentes
+        }
+    });
+
+    // Guardar PDF
+    const fileName = `stack-tecnologico-catalinas-${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
 }

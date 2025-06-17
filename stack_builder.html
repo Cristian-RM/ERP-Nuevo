@@ -1,63 +1,67 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Las Catalinas - Stack Builder</title>
-   <link rel="stylesheet" href="index.css">
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Las Catalinas - Stack Builder</h1>
-            <p>Construye tu stack tecnológico ideal arrastrando componentes</p>
-        </div>
-
-        <div class="components-panel">
-            <h3>🔧 Componentes Disponibles</h3>
-            <div id="components-list"></div>
-        </div>
-
-        <div class="workspace">
-            <div class="stack-builder" id="stack-builder">
-                        <!-- Se genera dinámicamente -->
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Las Catalinas - Stack Builder</title>
+        <link rel="stylesheet" href="index.css">
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Las Catalinas - Stack Builder</h1>
+                <p>Construye tu stack tecnológico ideal arrastrando
+                    componentes</p>
             </div>
 
-            <div class="actions">
-                <button class="btn btn-primary" onclick="exportStack()">📊 Exportar Resumen</button>
-                <button class="btn btn-secondary" onclick="clearStack()">🗑️ Limpiar Todo</button>
-                <button class="btn btn-secondary" onclick="importData()">📥 Importar Datos</button>
-                <button class="btn btn-secondary" onclick="exportData()">📤 Exportar Datos</button>
-                <button class="btn btn-secondary" onclick="importCategories()">📥 Importar Categorías</button>
-                <button class="btn btn-secondary" onclick="exportCategories()">📤 Exportar Categorías</button>
+            <div class="components-panel">
+                <h3>🔧 Componentes Disponibles</h3>
+                <div id="components-list"></div>
             </div>
-        </div>
 
-        <div class="costs-panel">
-            <div class="costs-section">
-                <h3>💰 Costos Mensuales</h3>
-                <div id="monthly-costs"></div>
-                <div class="cost-total">
-                    Total Mensual: $<span id="total-monthly">0</span>
+            <div class="workspace">
+                <div class="stack-builder" id="stack-builder">
+                    <!-- Se genera dinámicamente -->
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="exportStackToExcel()">📊 Exportar Excel</button>
+                    <button class="btn btn-primary" onclick="exportStackToPDF()">📄 Exportar PDF</button>
+                    <button class="btn btn-secondary" onclick="clearStack()">🗑️ Limpiar Todo</button>
+                    <button class="btn btn-secondary" onclick="importData()">📥 Importar Datos</button>
+                    <button class="btn btn-secondary" onclick="exportData()">📤 Exportar Datos</button>
+                    <button class="btn btn-secondary" onclick="importCategories()">📥 Importar Categorías</button>
+                    <button class="btn btn-secondary" onclick="exportCategories()">📤 Exportar Categorías</button>
                 </div>
             </div>
 
-            <div class="costs-section">
-                <h3>📅 Costos Anuales</h3>
-                <div id="annual-costs"></div>
-                <div class="cost-total">
-                    Total Anual: $<span id="total-annual">0</span>
+            <div class="costs-panel">
+                <div class="costs-section">
+                    <h3>💰 Costos Mensuales</h3>
+                    <div id="monthly-costs"></div>
+                    <div class="cost-total">
+                        Total Mensual: $<span id="total-monthly">0</span>
+                    </div>
+                </div>
+
+                <div class="costs-section">
+                    <h3>📅 Costos Anuales</h3>
+                    <div id="annual-costs"></div>
+                    <div class="cost-total">
+                        Total Anual: $<span id="total-annual">0</span>
+                    </div>
+                </div>
+
+                <div class="costs-section">
+                    <div class="chart-title">⭐ Análisis del Stack</div>
+                    <canvas id="radarChart" class="radar-chart"></canvas>
                 </div>
             </div>
-
-            <div class="costs-section">
-                <div class="chart-title">⭐ Análisis del Stack</div>
-                <canvas id="radarChart" class="radar-chart"></canvas>
-            </div>
         </div>
-    </div>
-<script src="index.js"></script>
- <script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+        <script src="index.js"></script>
+        <script>
         // Inicialización cuando el DOM está listo
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Inicializando Las Catalinas Stack Builder...');
@@ -86,5 +90,5 @@
             }
         }
     </script>
-</body>
+    </body>
 </html>
